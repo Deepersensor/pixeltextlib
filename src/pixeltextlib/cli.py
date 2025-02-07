@@ -2,7 +2,7 @@ import argparse
 import logging
 import sys
 from pixeltextlib import __version__
-from pixeltextlib.config import load_config, set_config_value
+from pixeltextlib.config import load_config, set_config_value, save_config, DEFAULT_CONFIG
 from pixeltextlib.core import PixelTextCore
 from pixeltextlib.watcher import DirectoryWatcher
 
@@ -24,8 +24,8 @@ def main(args=None):
 
     # Configure command
     config_parser = subparsers.add_parser("config", help="Configure PixelText settings")
-    config_parser.add_argument("key", help="Configuration key to set")
-    config_parser.add_argument("value", help="Value to set for the configuration key")
+    # config_parser.add_argument("key", help="Configuration key to set")
+    # config_parser.add_argument("value", help="Value to set for the configuration key")
 
     # Watch command
     watch_parser = subparsers.add_parser("watch", help="Start watching directories for changes")
@@ -51,8 +51,13 @@ def main(args=None):
     core = PixelTextCore(config)
 
     if args.command == "config":
-        set_config_value(args.key, args.value)
-        print(f"Set {args.key} to {args.value}")
+        config = load_config()
+        # Ensure all default config entries are present
+        for key, value in DEFAULT_CONFIG.items():
+            if key not in config:
+                config[key] = value
+        save_config(config)
+        print("Configuration initialized/updated.")
     elif args.command == "watch":
         watcher = DirectoryWatcher(core, config)
         watcher.run()
